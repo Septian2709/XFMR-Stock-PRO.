@@ -1,7 +1,7 @@
 class GoogleSheetsDB {
     constructor() {
-        this.API_KEY = 'YOUR_API_KEY'; // Ganti dengan API Key Anda
-        this.SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Ganti dengan Spreadsheet ID
+        this.API_KEY = 'AIzaSyB0zW4SCKKaEYtNCa2_Z_JfZ96zN4A-28I'; // Ganti dengan API Key Anda
+        this.SPREADSHEET_ID = '1CmG1syUsDSdm5il6v0TwWgDZ6dvxWtnWmzD4zKh_O10'; // Ganti dengan Spreadsheet ID
         this.SHEET_NAME = 'Sheet1'; // Nama sheet
         this.RANGE = 'A:E'; // Kolom A sampai E
         this.cache = [];
