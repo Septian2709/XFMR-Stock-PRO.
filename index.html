@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventaris Mobile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--light);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sync-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sync-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(180deg);
+        }
+
+        .sync-btn.syncing {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-dot.offline {
+            background: var(--warning);
+            box-shadow: 0 0 10px var(--warning);
+        }
+
+        /* Search Bar */
+        .search-container {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px 12px 40px;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .scan-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scan-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:active {
+            transform: scale(0.98);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Inventory List */
+        .inventory-list {
+            padding: 10px 20px 100px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin: 20px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 15px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .item-card:hover {
+            transform: translateX(5px);
+            border-left-color: var(--primary);
+        }
+
+        .item-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .item-code {
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn.edit {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .action-btn.delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .stock-high { background: #d1fae5; color: #059669; }
+        .stock-medium { background: #fef3c7; color: #d97706; }
+        .stock-low { background: #fee2e2; color: #dc2626; }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s;
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 25px 25px 0 0;
+            padding: 25px;
+            animation: slideUp 0.3s;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+
+        .close-btn:active {
+            background: #e5e7eb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .image-upload {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .image-upload:hover {
+            border-color: var(--primary);
+            background: #f9fafb;
+        }
+
+        .image-upload i {
+            font-size: 2rem;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f4f6;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Setup Screen */
+        .setup-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .setup-screen.hidden {
+            display: none;
+        }
+
+        .setup-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .setup-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .setup-desc {
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .setup-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .setup-btn {
+            padding: 15px 40px;
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .setup-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1500;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Barcode Scanner Simulation */
+        .scanner-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 2500;
+        }
+
+        .scanner-overlay.active {
+            display: block;
+        }
+
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 2px solid var(--success);
+            border-radius: 20px;
+        }
+
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--success);
+            top: 0;
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+
+        .scanner-close {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Setup Screen -->
+    <div class="setup-screen" id="setupScreen">
+        <div class="setup-icon">📦</div>
+        <h2 class="setup-title">Inventaris Mobile</h2>
+        <p class="setup-desc">Masukkan Google Sheets ID Anda untuk memulai.<br>Format: https://docs.google.com/spreadsheets/d/<b>SHEET_ID</b>/edit</p>
+        <input type="text" class="setup-input" id="sheetIdInput" placeholder="Masukkan Sheet ID...">
+        <button class="setup-btn" onclick="saveConfig()">Hubungkan</button>
+        <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.7;">
+            <i class="fas fa-info-circle"></i> Lihat panduan setup di bawah
+        </p>
+    </div>
+
+    <!-- Scanner Overlay -->
+    <div class="scanner-overlay" id="scannerOverlay">
+        <button class="scanner-close" onclick="closeScanner()"><i class="fas fa-times"></i></button>
+        <div class="scanner-frame">
+            <div class="scanner-line"></div>
+        </div>
+        <p style="position: absolute; bottom: 100px; width: 100%; text-align: center; color: white;">
+            Arahkan kamera ke barcode
+        </p>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <h1><i class="fas fa-boxes"></i> Inventaris</h1>
+                <button class="sync-btn" id="syncBtn" onclick="syncData()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="connection-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Terhubung ke Google Sheets</span>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Cari item..." onkeyup="searchItems()">
+                <button class="scan-btn" onclick="openScanner()">
+                    <i class="fas fa-barcode"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalItems">0</div>
+                <div class="stat-label">Total Item</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalStock">0</div>
+                <div class="stat-label">Total Stok</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="lowStock">0</div>
+                <div class="stat-label">Stok Rendah</div>
+            </div>
+        </div>
+
+        <!-- Inventory List -->
+        <div class="inventory-list" id="inventoryList">
+            <div class="section-title">Daftar Inventaris</div>
+            <!-- Items will be rendered here -->
+        </div>
+
+        <!-- FAB -->
+        <button class="fab" onclick="openModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Tambah Item</h3>
+                <button class="close-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="itemForm" onsubmit="saveItem(event)">
+                <input type="hidden" id="itemId">
+                
+                <div class="image-upload" onclick="document.getElementById('itemImage').click()">
+                    <i class="fas fa-camera"></i>
+                    <div style="font-size: 0.85rem; color: #6b7280; margin-top: 5px;">
+                        Tap untuk foto item
+                    </div>
+                    <input type="file" id="itemImage" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Kode Item / Barcode</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-input" id="itemCode" required placeholder="Scan atau ketik kode">
+                        <button type="button" class="scan-btn" onclick="scanBarcodeForInput()" style="flex-shrink: 0;">
+                            <i class="fas fa-barcode"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nama Item</label>
+                    <input type="text" class="form-input" id="itemName" required placeholder="Nama produk">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Kategori</label>
+                        <select class="form-select" id="itemCategory">
+                            <option value="Elektronik">Elektronik</option>
+                            <option value="Pakaian">Pakaian</option>
+                            <option value="Makanan">Makanan</option>
+                            <option value="Minuman">Minuman</option>
+                            <option value="Alat Tulis">Alat Tulis</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stok</label>
+                        <input type="number" class="form-input" id="itemStock" required min="0" placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Harga Beli</label>
+                        <input type="number" class="form-input" id="itemCost" min="0" placeholder="Rp 0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Harga Jual</label>
+                        <input type="number" class="form-input" id="itemPrice" min="0" placeholder="Rp 0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Lokasi Penyimpanan</label>
+                    <input type="text" class="form-input" id="itemLocation" placeholder="Rak/Gudang">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Catatan</label>
+                    <input type="text" class="form-input" id="itemNotes" placeholder="Keterangan tambahan">
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> Simpan Item
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let SHEET_ID = localStorage.getItem('sheetId') || '';
+        const API_KEY = 'YOUR_API_KEY'; // Replace with your Google API Key
+        let inventoryData = [];
+        let isOnline = navigator.onLine;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (SHEET_ID) {
+                document.getElementById('setupScreen').classList.add('hidden');
+                document.getElementById('appContainer').style.display = 'block';
+                loadData();
+            }
+
+            // Network status
+            window.addEventListener('online', () => {
+                isOnline = true;
+                updateConnectionStatus();
+                showToast('Koneksi tersambung');
+            });
+
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                updateConnectionStatus();
+                showToast('Mode offline - data tersimpan lokal');
+            });
+
+            updateConnectionStatus();
+        });
+
+        function saveConfig() {
+            const sheetId = document.getElementById('sheetIdInput').value.trim();
+            if (sheetId) {
+                SHEET_ID = sheetId;
+                localStorage.setItem('sheetId', sheetId);
+                document.getElementById('setupScreen').classList.add('hidden');
+                document.getElementById('appContainer').style.display = 'block';
+                loadData();
+                showToast('Berhasil terhubung!');
+            } else {
+                showToast('Masukkan Sheet ID yang valid');
+            }
+        }
+
+        function updateConnectionStatus() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (isOnline) {
+                dot.classList.remove('offline');
+                text.textContent = 'Terhubung ke Google Sheets';
+            } else {
+                dot.classList.add('offline');
+                text.textContent = 'Mode Offline (Local)';
+            }
+        }
+
+        // Data Management
+        async function loadData() {
+            showLoading(true);
+            
+            try {
+                // Try to load from localStorage first
+                const localData = localStorage.getItem('inventoryData');
+                if (localData) {
+                    inventoryData = JSON.parse(localData);
+                    renderInventory();
+                    updateStats();
+                }
+
+                // If online, sync with Google Sheets
+                if (isOnline && SHEET_ID) {
+                    await syncFromSheets();
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Gagal memuat data');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function syncFromSheets() {
+            // Simulasi fetch dari Google Sheets
+            // Dalam implementasi nyata, gunakan Google Sheets API
+            try {
+                // Contoh data struktur untuk Google Sheets
+                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Inventory?key=${API_KEY}`);
+                
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                const data = await response.json();
+                // Parse data dari sheets
+                // inventoryData = parseSheetData(data.values);
+                
+                localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+                renderInventory();
+                updateStats();
+            } catch (error) {
+                console.log('Using local data');
+            }
+        }
+
+        async function syncToSheets() {
+            if (!isOnline || !SHEET_ID) {
+                showToast('Data disimpan lokal (offline)');
+                return;
+            }
+
+            const btn = document.getElementById('syncBtn');
+            btn.classList.add('syncing');
+
+            try {
+                // Simulasi sync ke Google Sheets
+                // Dalam implementasi nyata, gunakan Google Sheets API untuk append/update rows
+                
+                // Contoh menggunakan Google Apps Script Web App
+                const response = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'sync',
+                        data: inventoryData,
+                        sheetId: SHEET_ID
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Sinkronisasi berhasil!');
+                } else {
+                    throw new Error('Sync failed');
+                }
+            } catch (error) {
+                showToast('Sinkronisasi gagal, data disimpan lokal');
+                // Queue for later sync
+                localStorage.setItem('pendingSync', 'true');
+            } finally {
+                btn.classList.remove('syncing');
+            }
+        }
+
+        function syncData() {
+            syncToSheets();
+        }
+
+        // UI Functions
+        function renderInventory(items = inventoryData) {
+            const container = document.getElementById('inventoryList');
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3>Belum ada item</h3>
+                        <p>Tambah item baru dengan tombol +</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="section-title">Daftar Inventaris</div>';
+            
+            items.forEach(item => {
+                const stockClass = item.stock <= 5 ? 'stock-low' : item.stock <= 20 ? 'stock-medium' : 'stock-high';
+                const stockText = item.stock <= 5 ? 'Stok Habis' : item.stock <= 20 ? 'Stok Menipis' : 'Tersedia';
+                
+                html += `
+                    <div class="item-card" style="position: relative;">
+                        <div class="stock-badge ${stockClass}">${stockText}</div>
+                        <div class="item-image">
+                            ${item.image ? `<img src="${item.image}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : '<i class="fas fa-box"></i>'}
+                        </div>
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <span class="item-code">${item.code}</span>
+                            <div class="item-meta">
+                                <span><i class="fas fa-tag"></i> ${item.category}</span>
+                                <span><i class="fas fa-cubes"></i> ${item.stock} unit</span>
+                            </div>
+                            ${item.price ? `<div style="font-weight:600;color:var(--primary);margin-top:5px;">Rp ${formatNumber(item.price)}</div>` : ''}
+                        </div>
+                        <div class="item-actions">
+                            <button class="action-btn edit" onclick="editItem('${item.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteItem('${item.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateStats() {
+            const total = inventoryData.length;
+            const totalStock = inventoryData.reduce((sum, item) => sum + parseInt(item.stock || 0), 0);
+            const lowStock = inventoryData.filter(item => item.stock <= 5).length;
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('totalStock').textContent = totalStock;
+            document.getElementById('lowStock').textContent = lowStock;
+        }
+
+        function searchItems() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = inventoryData.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                item.code.toLowerCase().includes(query) ||
+                item.category.toLowerCase().includes(query)
+            );
+            renderInventory(filtered);
+        }
+
+        // Modal Functions
+        function openModal() {
+            document.getElementById('itemModal').classList.add('active');
+            document.getElementById('modalTitle').textContent = 'Tambah Item';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemId').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.remove('active');
+        }
+
+        function editItem(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('itemModal').classList.add('active');
+            document.getElementById('modalTitle').textContent = 'Edit Item';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemCode').value = item.code;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemStock').value = item.stock;
+            document.getElementById('itemCost').value = item.cost || '';
+            document.getElementById('itemPrice').value = item.price || '';
+            document.getElementById('itemLocation').value = item.location || '';
+            document.getElementById('itemNotes').value = item.notes || '';
+        }
+
+        function saveItem(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('itemId').value;
+            const item = {
+                id: id || Date.now().toString(),
+                code: document.getElementById('itemCode').value,
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('itemCategory').value,
+                stock: parseInt(document.getElementById('itemStock').value),
+                cost: document.getElementById('itemCost').value,
+                price: document.getElementById('itemPrice').value,
+                location: document.getElementById('itemLocation').value,
+                notes: document.getElementById('itemNotes').value,
+                image: document.getElementById('itemImage').dataset.image || '',
+                updatedAt: new Date().toISOString()
+            };
+
+            if (id) {
+                const index = inventoryData.findIndex(i => i.id === id);
+                inventoryData[index] = item;
+            } else {
+                inventoryData.unshift(item);
+            }
+
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+            renderInventory();
+            updateStats();
+            closeModal();
+            showToast(id ? 'Item diperbarui!' : 'Item ditambahkan!');
+            
+            // Auto sync jika online
+            if (isOnline) syncToSheets();
+        }
+
+        function deleteItem(id) {
+            if (confirm('Yakin hapus item ini?')) {
+                inventoryData = inventoryData.filter(i => i.id !== id);
+                localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+                renderInventory();
+                updateStats();
+                showToast('Item dihapus');
+                
+                if (isOnline) syncToSheets();
+            }
+        }
+
+        // Scanner Functions
+        function openScanner() {
+            document.getElementById('scannerOverlay').classList.add('active');
+            // Simulasi scan
+            setTimeout(() => {
+                simulateScan();
+            }, 3000);
+        }
+
+        function closeScanner() {
+            document.getElementById('scannerOverlay').classList.remove('active');
+        }
+
+        function scanBarcodeForInput() {
+            openScanner();
+            window.scanTarget = 'input';
+        }
+
+        function simulateScan() {
+            const mockBarcode = 'ITEM-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            if (window.scanTarget === 'input') {
+                document.getElementById('itemCode').value = mockBarcode;
+                window.scanTarget = null;
+            } else {
+                // Cari item dengan barcode
+                const item = inventoryData.find(i => i.code === mockBarcode);
+                if (item) {
+                    showToast(`Ditemukan: ${item.name}`);
+                    // Highlight item
+                } else {
+                    // Auto buat item baru dengan barcode ini
+                    document.getElementById('itemCode').value = mockBarcode;
+                    openModal();
+                }
+            }
+            
+            closeScanner();
+        }
+
+        // Utilities
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    input.dataset.image = e.target.result;
+                    input.parentElement.innerHTML = `
+                        <img src="${e.target.result}" style="max-height: 150px; border-radius: 8px;">
+                        <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">Tap untuk ganti foto</div>
+                    `;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Close modal on outside click
+        document.getElementById('itemModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+    </script>
+</body>
+</html>
